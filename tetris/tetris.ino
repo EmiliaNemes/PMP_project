@@ -20,6 +20,10 @@ int buttonDown_old = HIGH;
 int buttonRight_old = HIGH;
 int buttonLeft_old = HIGH;
 
+int stepsDown = 0;
+int stepsRight = 0;
+int rotateContor = 0;
+
 // pinii LED matrix-ului
 int DIN1 = 12;
 int CS1  = 11;
@@ -31,7 +35,7 @@ int CS2  = 15;
 int CLK2 = 14;
 LedControl lc1 = LedControl(DIN2,CLK2,CS2,0);
 
-//int pieceNumber = 0; // piesele sunt identificate dupa numarul lor
+int pieceNumber = 0; // piesele sunt identificate dupa numarul lor
 /*  pieceNumber = 0
  *  o o
  *  o o
@@ -73,9 +77,12 @@ void initializeCurrentPiece(){
 }
 
 void generateNewPiece(){
-  
+
+  rotateContor = 0;
+  stepsDown = 0;
+  stepsRight = 0;
   initializeCurrentPiece();
-  int pieceNumber = random(7);
+  pieceNumber = random(7);
 
   switch (pieceNumber){
     case 0: currentPiece[0][3] = 1;
@@ -142,7 +149,16 @@ void moveLeft(){
       }
   }
 
+  for(int i = 0; i < 16; i++){
+      for(int j = 1; j < 8; j++){
+        if(currentPiece[i][j] == 1 & blocks[i][j-1] == 1){ // daca piesa ar intra in bloc, , nu o lasam sa mearga mai la stanga
+          ok = 0;
+        }
+      }
+    }
+
   if(ok == 1){
+    stepsRight--;
     for(int i = 0; i < 16; i++){
       for(int j = 0; j < 7; j++){
         currentPiece[i][j] = currentPiece[i][j+1]; // mutam coloanele cu o pozitie la stanga
@@ -167,10 +183,19 @@ void moveRight(){
       }
   }
 
+  for(int i = 0; i < 16; i++){
+      for(int j = 0; j < 7; j++){
+        if(currentPiece[i][j] == 1 & blocks[i][j+1] == 1){ // daca piesa ar intra in bloc, , nu o lasam sa mearga mai la dreapta
+          ok = 0;
+        }
+      }
+    }
+
   if(ok == 1){
+    stepsRight++;
     for(int i = 0; i < 16; i++){
       for(int j = 7; j > 0; j--){
-        currentPiece[i][j] = currentPiece[i][j-1]; // mutam liniile cu o linie mai in jos
+        currentPiece[i][j] = currentPiece[i][j-1]; // mutam liniile cu o linie mai la dreapta
       }
     }
     
@@ -280,9 +305,10 @@ void isRowFull(){
 
 void moveDown(){
   if(isSpaceBelow()){
+    stepsDown++;
     for(int i = 15; i > 0; i--){
       for(int j = 0; j < 8; j++){
-        currentPiece[i][j] = currentPiece[i-1][j]; // mutam liniile cu o pozitie la dreapta
+        currentPiece[i][j] = currentPiece[i-1][j]; // mutam liniile cu o pozitie in jos
       }
     }
 
@@ -308,17 +334,233 @@ void moveDown(){
   }
 }
 
-/*
-void rotate(){
-   forma rotata depinde de tipul piesei 
-   switch (pieceNumber){
-    case 0: break; // piesa 0 arata la fel si cand este rotita
-    case 1:      
+bool isBlock(int i, int j){
+  if(blocks[i][j] == 1){
+    return true;
+  } else {
+    return false;
   }
-  
+}
+
+
+void generateRotatedPiece(){
+  switch (pieceNumber){  //forma rotata depinde de tipul piesei 
+    case 0: if(!(isBlock(0+stepsDown, 3+stepsRight) | isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight)) & 
+              ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8)){
+              initializeCurrentPiece();
+              currentPiece[0+stepsDown][3+stepsRight] = 1;
+              currentPiece[0+stepsDown][4+stepsRight] = 1;
+              currentPiece[1+stepsDown][3+stepsRight] = 1;
+              currentPiece[1+stepsDown][4+stepsRight] = 1;
+            }  
+            break;
+    
+    case 1: if(rotateContor % 2 == 0){ // arata ca in forma initiala
+              if(!(isBlock(0+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(2+stepsDown, 3+stepsRight) | isBlock(3+stepsDown, 3+stepsRight))
+              & ((3+stepsRight)>=0 & (3+stepsRight)<8)){
+                initializeCurrentPiece();
+                currentPiece[0+stepsDown][3+stepsRight] = 1;
+                currentPiece[1+stepsDown][3+stepsRight] = 1;
+                currentPiece[2+stepsDown][3+stepsRight] = 1;
+                currentPiece[3+stepsDown][3+stepsRight] = 1;
+              }
+            } else{
+              if(!(isBlock(1+stepsDown, 2+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight)) & 
+              ((2+stepsRight)>=0 & (2+stepsRight)<8) & ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                initializeCurrentPiece();
+                currentPiece[1+stepsDown][2+stepsRight] = 1;
+                currentPiece[1+stepsDown][3+stepsRight] = 1;
+                currentPiece[1+stepsDown][4+stepsRight] = 1;
+                currentPiece[1+stepsDown][5+stepsRight] = 1;
+              }
+            }
+            
+            break;
+    
+    case 2: switch(rotateContor % 4){
+              case 0: if(!(isBlock(0+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                      }
+                      break;
+                      
+              case 1: if(!(isBlock(0+stepsDown, 3+stepsRight) | isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(2+stepsDown, 3+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][3+stepsRight] = 1;
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[2+stepsDown][3+stepsRight] = 1;
+                      }
+                      break;
+              
+              case 2: if(!(isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight) | isBlock(2+stepsDown, 5+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                        currentPiece[2+stepsDown][5+stepsRight] = 1;
+                      }
+                      break;
+                      
+              case 3: if(!(isBlock(0+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(2+stepsDown, 3+stepsRight) | isBlock(2+stepsDown, 2+stepsRight)) & 
+                      ((2+stepsRight)>=0 & (2+stepsRight)<8) & ((3+stepsRight)>=0 & (3+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[2+stepsDown][3+stepsRight] = 1;
+                        currentPiece[2+stepsDown][2+stepsRight] = 1;
+                      }
+                      break; 
+            }
+            break;
+     
+    case 3: switch(rotateContor % 4){
+              case 0: if(!(isBlock(0+stepsDown, 5+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][5+stepsRight] = 1;
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                      }
+                      break;
+                      
+              case 1: if(!(isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(2+stepsDown, 4+stepsRight) | isBlock(2+stepsDown, 5+stepsRight)) & 
+                      ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[2+stepsDown][4+stepsRight] = 1;
+                        currentPiece[2+stepsDown][5+stepsRight] = 1;
+                      }
+                      break;
+              
+              case 2: if(!(isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight) | isBlock(2+stepsDown, 3+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                        currentPiece[2+stepsDown][3+stepsRight] = 1;
+                      }
+                      break;
+                      
+              case 3: if(!(isBlock(0+stepsDown, 3+stepsRight) | isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(2+stepsDown, 4+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][3+stepsRight] = 1;
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[2+stepsDown][4+stepsRight] = 1;
+                      }
+                      break; 
+            }
+            break;
+            
+    case 4: switch(rotateContor % 2){
+              case 0: if(!(isBlock(0+stepsDown, 3+stepsRight) | isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][3+stepsRight] = 1;
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                      }
+                      break;
+                      
+              case 1: if(!(isBlock(0+stepsDown, 5+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight) | isBlock(2+stepsDown, 4+stepsRight)) & 
+                      ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][5+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                        currentPiece[2+stepsDown][4+stepsRight] = 1;
+                      }
+                      break;
+            }
+            break;
+            
+    case 5: switch(rotateContor % 2){
+              case 0: if(!(isBlock(0+stepsDown, 4+stepsRight) | isBlock(0+stepsDown, 5+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[0+stepsDown][5+stepsRight] = 1;
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                      }
+                      break;
+                      
+              case 1: if(!(isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight) | isBlock(2+stepsDown, 5+stepsRight)) & 
+                      ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                        currentPiece[2+stepsDown][5+stepsRight] = 1;
+                      }
+                      break;
+            }
+            break;
+            
+    case 6: switch(rotateContor % 4){
+              case 0: if(!(isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                      }
+                      break;
+                      
+              case 1: if(!(isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight) | isBlock(2+stepsDown, 4+stepsRight)) & 
+                      ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                        currentPiece[2+stepsDown][4+stepsRight] = 1;
+                      }
+                      break;
+              
+              case 2: if(!(isBlock(2+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 5+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8) & ((5+stepsRight)>=0 & (5+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[2+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][5+stepsRight] = 1;
+                      }
+                      break;
+                      
+              case 3: if(!(isBlock(0+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 4+stepsRight) | isBlock(1+stepsDown, 3+stepsRight) | isBlock(2+stepsDown, 4+stepsRight)) & 
+                      ((3+stepsRight)>=0 & (3+stepsRight)<8) & ((4+stepsRight)>=0 & (4+stepsRight)<8)){
+                        initializeCurrentPiece();
+                        currentPiece[0+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][4+stepsRight] = 1;
+                        currentPiece[1+stepsDown][3+stepsRight] = 1;
+                        currentPiece[2+stepsDown][4+stepsRight] = 1;
+                      }
+                      break; 
+            }
+            break;
+    }
+}
+
+
+
+void rotate(){
+  generateRotatedPiece();
   changeLEDs();
 }
-*/
+
 
 void printRows1(boolean displayedData[][8]) // afisare pe primul LED matrix
 {
@@ -394,11 +636,12 @@ void loop() {
 
     buttonRotate = digitalRead(4);
     buttonDown   = digitalRead(5);
-    buttonRight  = digitalRead(6);
-    buttonLeft   = digitalRead(7);
+    buttonRight  = digitalRead(7);
+    buttonLeft   = digitalRead(6);
 
     if((buttonRotate == LOW) && (buttonRotate_old == HIGH)){
-      //rotate();
+      rotateContor++;
+      rotate();
       buttonRotate_old = buttonRotate;
     }
 

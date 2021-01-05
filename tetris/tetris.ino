@@ -4,6 +4,7 @@ long delays  = 0;
 short delay_ = 500;
 
 int gameEnded = 0;
+int score = 150;
 
 // [16][8] = dimensiunea totala a led-matrix-ului
 boolean currentPiece[16][8]; // piesa curenta, pe care trebuie s-o asezam acuma
@@ -225,7 +226,164 @@ boolean isSpaceBelow(){
   
 }
 
+void computeScore(){
+  
+  int blocksContor = 0;
+  
+  for(int i = 0; i < 16; i++){
+    for(int j = 0; j < 8; j++){ 
+      if(displayedData[i][j] == 1){
+        blocksContor++; // numaram cate blocuri au ramas pe display, fiecare bloc va insemna un punct minus din score
+      }
+    }
+  }
+
+  score = score - blocksContor; // score-ul final este egal cu punctele adunate prin eliminarea unor randuri, minus punctele adunate din blocurile ramase
+}
+
+void displayNumber(int number, int n, int m){
+  switch(number){
+    case 0: displayedData[n][m] = 1;
+            displayedData[n][m-1] = 1;
+            displayedData[n][m-2] = 1;
+            displayedData[n+1][m] = 1;
+            displayedData[n+1][m-2] = 1;
+            displayedData[n+2][m] = 1;
+            displayedData[n+2][m-2] = 1;
+            displayedData[n+3][m] = 1;
+            displayedData[n+3][m-2] = 1;
+            displayedData[n+4][m] = 1;
+            displayedData[n+4][m-1] = 1;
+            displayedData[n+4][m-2] = 1;
+            break;
+
+    case 1: displayedData[n][m-1] = 1;
+            displayedData[n+1][m-1] = 1;
+            displayedData[n+2][m-1] = 1;
+            displayedData[n+3][m-1] = 1;
+            displayedData[n+4][m-1] = 1;
+            break;
+
+    case 2: displayedData[n][m] = 1;
+            displayedData[n][m-1] = 1;
+            displayedData[n][m-2] = 1;
+            displayedData[n+1][m-2] = 1;
+            displayedData[n+2][m] = 1;
+            displayedData[n+2][m-1] = 1;
+            displayedData[n+2][m-2] = 1;
+            displayedData[n+3][m] = 1;
+            displayedData[n+4][m] = 1;
+            displayedData[n+4][m-1] = 1;
+            displayedData[n+4][m-2] = 1;
+            break;
+
+     case 3: displayedData[n][m] = 1;
+             displayedData[n][m-1] = 1;
+             displayedData[n][m-2] = 1;
+             displayedData[n+1][m-2] = 1;
+             displayedData[n+2][m] = 1;
+             displayedData[n+2][m-1] = 1;
+             displayedData[n+2][m-2] = 1;
+             displayedData[n+3][m-2] = 1;
+             displayedData[n+4][m] = 1;
+             displayedData[n+4][m-1] = 1;
+             displayedData[n+4][m-2] = 1;
+             break;
+
+     case 4: displayedData[n][m] = 1;
+             displayedData[n+1][m] = 1;
+             displayedData[n+2][m] = 1;
+             displayedData[n+2][m-1] = 1;
+             displayedData[n+2][m-2] = 1;
+             displayedData[n+3][m-2] = 1;
+             displayedData[n+4][m-2] = 1;
+             break;
+
+     case 5: displayedData[n][m] = 1;
+             displayedData[n][m-1] = 1;
+             displayedData[n][m-2] = 1;
+             displayedData[n+1][m] = 1;
+             displayedData[n+2][m] = 1;
+             displayedData[n+2][m-1] = 1;
+             displayedData[n+2][m-2] = 1;
+             displayedData[n+3][m-2] = 1;
+             displayedData[n+4][m] = 1;
+             displayedData[n+4][m-1] = 1;
+             displayedData[n+4][m-2] = 1;
+             break;
+
+     case 6: displayedData[n][m] = 1;
+             displayedData[n+1][m] = 1;
+             displayedData[n+2][m] = 1;
+             displayedData[n+2][m-1] = 1;
+             displayedData[n+2][m-2] = 1;
+             displayedData[n+3][m] = 1;
+             displayedData[n+3][m-2] = 1;
+             displayedData[n+4][m] = 1;
+             displayedData[n+4][m-1] = 1;
+             displayedData[n+4][m-2] = 1;
+             break;
+
+    case 7: displayedData[n][m] = 1;
+            displayedData[n][m-1] = 1;
+            displayedData[n][m-2] = 1;
+            displayedData[n+1][m-2] = 1;
+            displayedData[n+2][m-2] = 1;
+            displayedData[n+3][m-2] = 1;
+            displayedData[n+4][m-2] = 1;
+            break;
+
+    case 8: displayedData[n][m] = 1;
+            displayedData[n][m-1] = 1;
+            displayedData[n][m-2] = 1;
+            displayedData[n+1][m] = 1;
+            displayedData[n+1][m-2] = 1;
+            displayedData[n+2][m] = 1;
+            displayedData[n+2][m-1] = 1;
+            displayedData[n+2][m-2] = 1;
+            displayedData[n+3][m] = 1;
+            displayedData[n+3][m-2] = 1;
+            displayedData[n+4][m] = 1;
+            displayedData[n+4][m-1] = 1;
+            displayedData[n+4][m-2] = 1;
+            break;
+
+    case 9: displayedData[n][m] = 1;
+            displayedData[n][m-1] = 1;
+            displayedData[n][m-2] = 1;
+            displayedData[n+1][m] = 1;
+            displayedData[n+1][m-2] = 1;
+            displayedData[n+2][m] = 1;
+            displayedData[n+2][m-1] = 1;
+            displayedData[n+2][m-2] = 1;
+            displayedData[n+3][m-2] = 1;
+            displayedData[n+4][m-2] = 1;
+            break;
+  }
+}
+
+void displayScore(){
+
+  int unitati = 0, zeci = 0, sute = 0;
+  unitati = score - (score / 10)*10;
+  zeci = (score / 10) - (score/100)*10;
+  sute = score/100;
+  
+  for(int i = 0; i < 16; i++){
+    for(int j = 0; j < 8; j++){ 
+      displayedData[i][j] = false;
+    }
+  }
+
+  displayNumber(sute, 0, 7);
+  displayNumber(zeci, 5, 4);
+  displayNumber(unitati, 11, 2);
+
+}
+
 void gameOver(){
+
+  computeScore();
   
   for(int i = 0; i < 16; i++){
     for(int j = 0; j < 8; j++){ 
@@ -257,7 +415,33 @@ void gameOver(){
 
   printRows1(displayedData);
   printRows2(displayedData);
+  delay(500);
+  
+  displayScore();
+  printRows1(displayedData);
+  printRows2(displayedData);
+  delay(10000);
+
+  for(int i = 0; i < 16; i++){
+    for(int j = 0; j < 8; j++){ 
+      displayedData[i][j] = false;
+    }
+  }
+
+  printRows1(displayedData);
+  printRows2(displayedData);
+  delay(500);
+
+  for(int i = 0; i < 16; i++){
+    for(int j = 0; j < 8; j++){ 
+      displayedData[i][j] = true;
+    }
+  }
+
+  printRows1(displayedData);
+  printRows2(displayedData);
   delay(1500);
+  score = 0;
   setup();
 }
 
@@ -277,13 +461,15 @@ void moveDownOnFullRow(int row){
   
   for(int i = row; i > 0; i--){
       for(int j = 0; j < 8; j++){
-        blocks[i][j] = blocks[i-1][j]; // mutam liniile cu o pozitie la dreapta, incepand de la linia ca este plina
+        blocks[i][j] = blocks[i-1][j]; // mutam liniile cu o pozitie in jos, incepand de la linia ca este plina
       }
     }
 
     for(int i = 0; i < 8; i++){
       blocks[0][i] = 0; // prima linie va primi valoarea 0 -> stins
     }
+
+    score+=10;
 }
 
 void isRowFull(){
